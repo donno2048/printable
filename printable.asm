@@ -35,16 +35,40 @@ sub al, %1
 %endrep
 %endmacro
 
-%macro execute 1-*
-%if printable(%0-2)
-jnz short $$+%0
-%rotate 2
-%rep %0-2
-%if printable(%1)
-db %1
-%else
-db 0x40
+%macro get_byte 3
+%assign lastjump %3 % 0x80
+%if !printable(lastjump-2)
+%define prelastindex (%3 / 0x80 - 1) * 0x80 + 1
+%assign lastjump lastjump+0x80-0x40
 %endif
+%if !(%2 % 0x80) || %3-%2=lastjump
+%assign val 0x75
+%elif %3-%2=lastjump-1
+%assign val lastjump-2
+%elif !((%2-1) % 0x80)
+%ifdef prelastindex
+%if %2=prelastindex
+%assign val 0x3E
+%else
+%assign val 0x7E
+%endif
+%else
+%assign val 0x7E
+%endif
+%elif printable(%1)
+%assign val %1
+%else
+%assign val 0x40
+%endif
+%endmacro
+
+%macro execute 1-*
+%if %0<=0x10000/0xB-2
+%assign position 0
+%rep %0
+get_byte %1, position, %0
+db val
+%assign position position+1
 %rotate 1
 %endrep
 %assign incs 0
@@ -54,15 +78,7 @@ moval 0xCF
 push ax
 pop bx
 %rep %0
-%if !position
-%assign val 0x75
-%elif position=1
-%assign val %0-2
-%elif printable(%1)
-%assign val %1
-%else
-%assign val 0x40
-%endif
+get_byte %1, position, %0
 %assign diff val-%1
 %assign incs incs+1
 %if diff
@@ -78,7 +94,8 @@ popa
 push si
 ret
 %else
-%error "the amount of bytes itself has to be printable, current:", %0
+%undef size
+%error biggest binary size is 5955, current: %0
 %endif
 %endmacro
 
@@ -92,6 +109,11 @@ ret
 %strcat bytes bytes, ",0x", byte
 %assign index index+1
 %endrep
+%if size/2<0x22
+%rep 0x22-size/2
+%strcat bytes bytes, ",0x20"
+%endrep
+%endif
 %deftok args bytes
 execute args
 %endmacro
