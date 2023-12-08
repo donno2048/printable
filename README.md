@@ -12,8 +12,7 @@ nasm printable.asm -dinput="$(nasm x.asm -o /dev/stdout | xxd -p - | tr -d '\n')
 
 ## TODO
 
-- remove `ret` at the end of the executable
-- embed jumps in the buffer so the input size won't have any requirement
+Remove `ret` at the end of the executable
 
 ## Note
 
