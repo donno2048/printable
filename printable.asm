@@ -36,6 +36,7 @@ sub al, %1
 %endmacro
 
 %macro get_byte 3
+%undef xored
 %assign lastjump %3 % 0x80
 %if !printable(lastjump-2)
 %define prelastindex (%3 / 0x80 - 1) * 0x80 + 1
@@ -57,9 +58,22 @@ sub al, %1
 %endif
 %elif printable(%1)
 %assign val %1
-%else
-%assign val 0x40
+%elif %1<0x20 || %1=0x7F
+%assign val %1^0x20
+%define xored bl
+%elif %1>=0xA0
+%assign val %1^0x80
+%define xored cl
+%elif %1>=0x80 || %1=0xFF
+%assign val %1^0xA0
+%define xored dl
 %endif
+%endmacro
+
+%macro mov 2
+moval %2
+push ax
+pop %1
 %endmacro
 
 %macro execute 1-*
@@ -74,17 +88,22 @@ db val
 %assign incs 0
 %assign position 0
 pusha
-moval 0xCF
-push ax
-pop bx
+mov si, 0xCF
+mov dx, 0xA0
+mov cx, 0x80
+mov bx, 0x20
 %rep %0
 get_byte %1, position, %0
-%assign diff val-%1
 %assign incs incs+1
-%if diff
-times incs inc bx
+%assign diff val-%1
+%ifdef xored
+times incs inc si
+xor [si+0x30], xored
+%assign incs 0
+%elif diff
+times incs inc si
 moval diff
-sub [bx+0x30], al
+sub [si+0x30], al
 %assign incs 0
 %endif
 %assign position position+1
