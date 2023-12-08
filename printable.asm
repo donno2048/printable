@@ -47,6 +47,7 @@ db 0x40
 %endif
 %rotate 1
 %endrep
+%assign incs 0
 %assign position 0
 pusha
 moval 0xCF
@@ -63,10 +64,12 @@ pop bx
 %assign val 0x40
 %endif
 %assign diff val-%1
-inc bx
+%assign incs incs+1
 %if diff
+times incs inc bx
 moval diff
 sub [bx+0x30], al
+%assign incs 0
 %endif
 %assign position position+1
 %rotate 1
