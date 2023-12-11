@@ -87,6 +87,7 @@ db val
 %endrep
 %assign incs 0
 %assign position 0
+%assign last 0
 pusha
 mov si, 0xCF
 mov dx, 0xA0
@@ -96,15 +97,22 @@ mov bx, 0x20
 get_byte %1, position, %0
 %assign incs incs+1
 %assign diff val-%1
+%if %0=position+1 && printable(0x30+incs)
+%assign last 1
+%endif
 %ifdef xored
+%if !last
 times incs inc si
-xor [si+0x30], xored
 %assign incs 0
+%endif
+xor [si+0x30+incs], xored
 %elif diff
+%if !last
 times incs inc si
-moval diff
-sub [si+0x30], al
 %assign incs 0
+%endif
+moval diff
+sub [si+0x30+incs], al
 %endif
 %assign position position+1
 %rotate 1
