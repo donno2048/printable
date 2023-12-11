@@ -26,41 +26,11 @@
 subal sub1, sub2, sub3
 %endmacro
 
-%macro movax 1
-%assign break 0
-%assign sub1 0x20
-%rep 0x5F
-%assign sub2 0x20
-%rep 0x5F
-%assign sub3 (-sub1-sub2-(%1>>8))&0xFF
-%if printable(sub3)
-%assign break 1
-%exitrep
-%endif
-%assign sub2 sub2+1
-%endrep
-%if break
-%exitrep
-%endif
-%assign sub1 sub1+1
-%endrep
-subax sub1, sub2, sub3
-%assign value 0x6F
-moval %1&0xFF
-%endmacro
-
 %macro subal 1-*
 %rep %0
 %if %1
 sub al, %1
 %endif
-%rotate 1
-%endrep
-%endmacro
-
-%macro subax 1-*
-%rep %0
-sub ax, (%1<<8)+0x30
 %rotate 1
 %endrep
 %endmacro
@@ -149,7 +119,28 @@ sub [si+0x30+incs], al
 %endrep
 moval 0xFF
 %assign pos $-$$+0xE6
-movax pos
+%assign break 0
+%assign sub1 0x20
+%rep 0x5F
+%assign sub2 0x20
+%rep 0x5F
+%assign sub3 (-sub1-sub2-(pos>>8))&0xFF
+%if printable(sub3)
+%assign break 1
+%exitrep
+%endif
+%assign sub2 sub2+1
+%endrep
+%if break
+%exitrep
+%endif
+%assign sub1 sub1+1
+%endrep
+sub ax, (sub1<<8)+0x30
+sub ax, (sub2<<8)+0x30
+sub ax, (sub3<<8)+0x30
+%assign value 0x6F
+moval pos&0xFF
 push ax
 pop bx
 moval 0x6D
