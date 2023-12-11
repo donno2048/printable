@@ -9,7 +9,3 @@ Given "x.asm" which we want to turn into a printable executable "x.com" we will 
 ```sh
 nasm printable.asm -dinput="$(nasm x.asm -o /dev/stdout | xxd -p - | tr -d '\n')" -o x.com
 ```
-
-## TODO
-
-Remove `ret` at the end of the executable
