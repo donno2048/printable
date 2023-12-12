@@ -61,10 +61,10 @@ sub al, %1
 %elif %1<0x20 || %1=0x7F
 %assign val %1^0x20
 %define xored bl
-%elif %1>=0xA0
+%elif %1>=0xA0 && %1<>0xFF
 %assign val %1^0x80
 %define xored cl
-%elif %1>=0x80 || %1=0xFF
+%elif %1>=0x80
 %assign val %1^0xA0
 %define xored dl
 %endif
