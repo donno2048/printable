@@ -1,4 +1,4 @@
-%define printable(x) (x>=0x20 && x<=0x7E)
+%define printable(x) ((x>=0x20 && x<=0x7E) || (x==0xA))
 %define subprintable(x) (printable(x) || !x)
 
 %assign value 0
